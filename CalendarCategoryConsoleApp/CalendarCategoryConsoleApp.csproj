@@ -53,7 +53,7 @@
   <ItemGroup>
     <Compile Include="CategoryModel.cs" />
     <Compile Include="ColourCollection.cs" />
-    <Compile Include="MailClient.cs" />
+    <Compile Include="CategoryClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

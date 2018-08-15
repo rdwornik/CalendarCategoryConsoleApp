@@ -22,7 +22,7 @@ namespace CalendarCategoryConsoleApp
             string colour = Console.ReadLine();
             colour = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(colour.ToLower());
             
-            MailClient.CreateCategory(displayName, ColourCollection.MappedColour(colour)).Wait();
+            CategoryClient.CreateCategory(displayName, ColourCollection.MappedColour(colour)).Wait();
             Console.ReadKey();
         }
     }

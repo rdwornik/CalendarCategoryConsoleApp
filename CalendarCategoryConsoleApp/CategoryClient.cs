@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CalendarCategoryConsoleApp
 {
-    class MailClient
+    class CategoryClient
     {
         // Instancja Azure AD gdzie jest hostowana domena
         public static string AADInstance
