@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CalendarCategoryConsoleApp
 {
-    class CategoryModel         //klasa przechuje zmienne potrzebne do stworzenia kategorii
+    class CategoryModel         //klasa przechowuje zmienne potrzebne do stworzenia kategorii
     {
         public string DisplayName { get; set; }
         public string Color { get; set; }
