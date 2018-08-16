@@ -55,7 +55,7 @@ namespace CalendarCategoryConsoleApp
             get { return "v1.0"; }
         }
 
-        //Pobieramy tokena
+        //Pobieramy tokena przy pomocy adal(adal(Microsoft.IdentityModel.Clients.ActiveDirectory)) w wersji 2.0
         public static string GetAccessToken()
         {
             
@@ -91,20 +91,19 @@ namespace CalendarCategoryConsoleApp
         private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category) //tworzymy kategorie asynchronicznie już w otlooku 
         {
             var stringContent = JsonConvert.SerializeObject(category); //konwertujemy naszą klasę categoryModel do formatu json ponieważ właśnie takie jest obsługiwany przez API
+                                                                       //konwertujemy za pomoc newtonsoft.json
             var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/me/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
-                new StringContent(stringContent, Encoding.UTF8, "application/json")); // drugi to format danych w jakim będziemy przesyłać
-            return response.IsSuccessStatusCode;
+                new StringContent(stringContent, Encoding.UTF8, "application/json"));    // drugi to format danych w jakim będziemy przesyłać
+            return response.IsSuccessStatusCode; 
 
         }
  
-        public static async Task CreateCategory(string displayName, string colour)
+        public static async Task CreateCategory(string displayName, string colour) //ostateczna metoda którą wywyołujemy mainie
         {
             // otrzymujemy acces tokena i konfigurujemy z httpClient
             var accessToken = GetAccessToken();
             var httpClient = GetHttpClient(accessToken);
-
             var category = CreateCategoryObject(displayName,colour);
-
             var isSuccess = await CreateCategoryAsync(httpClient, category);
 
             if (isSuccess)
