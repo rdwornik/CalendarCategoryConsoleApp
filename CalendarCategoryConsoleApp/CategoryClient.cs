@@ -85,25 +85,50 @@ namespace CalendarCategoryConsoleApp
                 Color = color
             };
             return category;
-        }      
-
-
-        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category) //tworzymy kategorie asynchronicznie już w otlooku 
+        }
+        
+        public static async Task<ContactModel> GetContactAsync(HttpClient httpClient)
         {
+            var contactResponse = await httpClient.GetStringAsync("https://graph.microsoft.com/v1.0/users/?$select=mail");
+            var contact = JsonConvert.DeserializeObject<ContactModel>(contactResponse);
+            return contact;
+        }
+
+        public static async Task GetListofEmails()
+        {
+            var accessToken = GetAccessToken();
+            var httpClient = GetHttpClient(accessToken);
+
+            var contact = await GetContactAsync(httpClient);
+
+            // contact.value.ForEach(Console.WriteLine);
+
+            foreach (var model in contact.Value)
+            {
+                Console.WriteLine(model.Mail);
+            }
+        }
+
+
+
+        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string mail) //tworzymy kategorie asynchronicznie już w otlooku 
+        {
+
+
             var stringContent = JsonConvert.SerializeObject(category); //konwertujemy naszą klasę categoryModel do formatu json ponieważ właśnie takie jest obsługiwany przez API
                                                                        //konwertujemy za pomoc newtonsoft.json
-            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/me/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
+            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/"+mail+"/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
                 new StringContent(stringContent, Encoding.UTF8, "application/json"));    // drugi to format danych w jakim będziemy przesyłać
             return response.IsSuccessStatusCode; 
 
         }
  
-        public static async Task CreateCategory(string displayName, string colour) //ostateczna metoda którą wywyołujemy mainie
+        public static async Task CreateCategory(string displayName, string colour,string mail) //ostateczna metoda którą wywyołujemy mainie
         {
             // otrzymujemy acces tokena i konfigurujemy z httpClient
             var accessToken = GetAccessToken();
             var httpClient = GetHttpClient(accessToken);
-            var category = CreateCategoryObject(displayName,colour);
+            var category = CreateCategoryObject(displayName,colour,mail);
             var isSuccess = await CreateCategoryAsync(httpClient, category);
 
             if (isSuccess)

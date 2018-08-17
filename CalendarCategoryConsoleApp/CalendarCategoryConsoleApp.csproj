@@ -54,6 +54,7 @@
     <Compile Include="CategoryModel.cs" />
     <Compile Include="ColourCollection.cs" />
     <Compile Include="CategoryClient.cs" />
+    <Compile Include="ContactModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

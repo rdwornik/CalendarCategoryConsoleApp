@@ -37,12 +37,14 @@ namespace CalendarCategoryConsoleApp
 
         private static int GetColour(string colour)    //Szukam indeksu koloru wybranego przez użytkownia który sparuje ze słowem preset
         {
-            for (int i = 0; i < colours.Length; i++)
-                if(colours[i] == colour)
-                {
-                    return i;
-                }
-            throw new System.ArgumentOutOfRangeException(colour, "there is no such a colour");
+              for (int i = 0; i < colours.Length; i++)
+                  if(colours[i] == colour)
+                  {
+                      return i;
+                  }
+              throw new System.ArgumentOutOfRangeException(colour, "there is no such a colour");
+              
+            
         }
 
         public static string DisplayColours()
