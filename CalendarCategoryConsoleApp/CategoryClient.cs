@@ -90,7 +90,10 @@ namespace CalendarCategoryConsoleApp
         
         public static async Task<ContactModel> GetContactAsync(HttpClient httpClient)
         {
-            var contactResponse = await httpClient.GetStringAsync("https://graph.microsoft.com/v1.0/users/?$select=mail");
+            try
+            {
+                var contactResponse = await httpClient.GetStringAsync("https://graph.microsoft.com/v1.0/users/?$select=mail");
+            }
             var contact = JsonConvert.DeserializeObject<ContactModel>(contactResponse);
             return contact;
         }
@@ -100,13 +103,9 @@ namespace CalendarCategoryConsoleApp
             var accessToken = GetAccessToken();
             var httpClient = GetHttpClient(accessToken);
             var contact = await GetContactAsync(httpClient);
-    
-            // contact.value.ForEach(Console.WriteLine);
-            //foreach (var model in contact.Value)
-            //{
-            //    Console.WriteLine(model.Mail);
-            //}
-            return contact;  
+            ValueModel valueModel = new ValueModel();
+            valueModel.Mail = mail;
+            return contact.Value.Contains(valueModel);
         }
 
        
