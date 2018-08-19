@@ -8,7 +8,7 @@ namespace CalendarCategoryConsoleApp
 {
     class ColourCollection
     {
-        public static string[] colours = {"Red"         //paleta wszystkich kolorów dostępnych w kalendarzu
+        private static string[] colours = {"Red"         //paleta wszystkich kolorów dostępnych w kalendarzu
                         ,"Orange"
                         ,"Brown"
                         ,"Yellow"
@@ -35,26 +35,29 @@ namespace CalendarCategoryConsoleApp
                         ,"DarkCranberry"
                         };
 
-        private static int GetColour(string colour)    //Szukam indeksu koloru wybranego przez użytkownia który sparuje ze słowem preset
+        private int GetColourIndex(string colour)    //Szukam indeksu koloru wybranego przez użytkownia który sparuje ze słowem preset
         {
-              for (int i = 0; i < colours.Length; i++)
-                  if(colours[i] == colour)
-                  {
-                      return i;
-                  }
-              throw new System.ArgumentOutOfRangeException(colour, "there is no such a colour");
-              
-            
+           return Array.IndexOf(colours, colour);
         }
+
+        public bool ColourExcist(string colour)
+        {
+            int index = GetColourIndex(colour);
+            if (index < 0)
+                return false;
+            else
+                return true;
+        }  
 
         public static string DisplayColours()
         {
-            return string.Join(",", colours);
+            return string.Join(", ", colours);
         }
 
-        public static string MappedColour(string colour) //mapuje kolory np z red na Preset0 żeby API mogło odczytać
+
+        public string MappedColour(string colour) //mapuje kolory np z red na Preset0 żeby API mogło odczytać
         {
-            int index = GetColour(colour);
+            int index = GetColourIndex(colour);
             return String.Format("{0}{1}", "Preset", index);
         }
     }

@@ -12,6 +12,7 @@ namespace CalendarCategoryConsoleApp
 {
     class CategoryClient
     {
+    
         // Instancja Azure AD gdzie jest hostowana domena
         public static string AADInstance
         {
@@ -94,27 +95,31 @@ namespace CalendarCategoryConsoleApp
             return contact;
         }
 
-        public static async Task GetListofEmails()
+        private static async Task<bool> ExcistEmail(string mail)
         {
             var accessToken = GetAccessToken();
             var httpClient = GetHttpClient(accessToken);
-
             var contact = await GetContactAsync(httpClient);
-
+    
             // contact.value.ForEach(Console.WriteLine);
-
-            foreach (var model in contact.Value)
-            {
-                Console.WriteLine(model.Mail);
-            }
+            //foreach (var model in contact.Value)
+            //{
+            //    Console.WriteLine(model.Mail);
+            //}
+            return contact;  
         }
 
-
+       
+        private static async Task<UserModel> GetUserAsync(HttpClient httpClient)
+        {
+            // Get and deserialize the user
+            var userResponse = await httpClient.GetStringAsync(GraphResource + GraphVersion + "/users/?$filter=mail eq 'robert@testGraphApi1996.onmicrosoft.com'");
+            var user = JsonConvert.DeserializeObject<UserModel>(userResponse);
+            return user;
+        }
 
         private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string mail) //tworzymy kategorie asynchronicznie już w otlooku 
         {
-
-
             var stringContent = JsonConvert.SerializeObject(category); //konwertujemy naszą klasę categoryModel do formatu json ponieważ właśnie takie jest obsługiwany przez API
                                                                        //konwertujemy za pomoc newtonsoft.json
             var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/"+mail+"/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
@@ -123,13 +128,13 @@ namespace CalendarCategoryConsoleApp
 
         }
  
-        public static async Task CreateCategory(string displayName, string colour,string mail) //ostateczna metoda którą wywyołujemy mainie
+        private static async Task CreateCategory(string displayName, string colour) //ostateczna metoda którą wywyołujemy mainie
         {
-            // otrzymujemy acces tokena i konfigurujemy z httpClient
             var accessToken = GetAccessToken();
             var httpClient = GetHttpClient(accessToken);
-            var category = CreateCategoryObject(displayName,colour,mail);
-            var isSuccess = await CreateCategoryAsync(httpClient, category);
+            var user = await GetUserAsync(httpClient);
+            var category = CreateCategoryObject(displayName,colour);
+            var isSuccess = await CreateCategoryAsync(httpClient, category, user.Value.First().UserPrincipalName);
 
             if (isSuccess)
             {
@@ -139,7 +144,6 @@ namespace CalendarCategoryConsoleApp
             {
                 Console.Write("Error");
             }
-
         }
        
     }
