@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CalendarCategoryConsoleApp
 {
-    class UserModel
+    class UserModel         //user model to klasa która przechowuje usera którego wyfiltrowaliśmy po to by dostać jego displayNAme
     {
         public List<ValueUserModel> Value { get; set; }
     }

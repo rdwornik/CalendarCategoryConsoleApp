@@ -40,16 +40,19 @@ namespace CalendarCategoryConsoleApp
            return Array.IndexOf(colours, colour);
         }
 
-        public bool ColourExcist(string colour)
+        public bool ColourExcist(string colour) //sprawdzamy czy istnieje w kolekcji
         {
             int index = GetColourIndex(colour);
             if (index < 0)
+            {
+                Console.WriteLine("There is no such a available colour");
                 return false;
+            }
             else
                 return true;
         }  
 
-        public static string DisplayColours()
+        public static string DisplayColours() //wyświetlamy wszystkie kolory
         {
             return string.Join(", ", colours);
         }

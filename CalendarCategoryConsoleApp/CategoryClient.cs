@@ -88,61 +88,68 @@ namespace CalendarCategoryConsoleApp
             return category;
         }
         
-        public static async Task<ContactModel> GetContactAsync(HttpClient httpClient)
-        {
-            try
-            {
-                var contactResponse = await httpClient.GetStringAsync("https://graph.microsoft.com/v1.0/users/?$select=mail");
-            }
-            var contact = JsonConvert.DeserializeObject<ContactModel>(contactResponse);
-            return contact;
-        }
-
-        private static async Task<bool> ExcistEmail(string mail)
-        {
-            var accessToken = GetAccessToken();
-            var httpClient = GetHttpClient(accessToken);
-            var contact = await GetContactAsync(httpClient);
-            ValueModel valueModel = new ValueModel();
-            valueModel.Mail = mail;
-            return contact.Value.Contains(valueModel);
-        }
-
-       
-        private static async Task<UserModel> GetUserAsync(HttpClient httpClient)
+        private static async Task<UserModel> GetUserAsync(HttpClient httpClient, string mail) //szukamy user z mailem który wpisaliśmy
         {
             // Get and deserialize the user
-            var userResponse = await httpClient.GetStringAsync(GraphResource + GraphVersion + "/users/?$filter=mail eq 'robert@testGraphApi1996.onmicrosoft.com'");
+            var userResponse = await httpClient.GetStringAsync(GraphResource + GraphVersion + "/users/?$filter=mail eq '" + mail + "'"); //filtrujemy api po mailu
             var user = JsonConvert.DeserializeObject<UserModel>(userResponse);
+            if(user.Value.Count() == 0)                                         //jeśli lista jest pusta to znaczy, że nie znaleźliśmy maila i że nie ma usera z takim mailem
+                Console.WriteLine("There is no such a user with such a mail");
+
             return user;
         }
 
-        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string mail) //tworzymy kategorie asynchronicznie już w otlooku 
+        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string displayName) //tworzymy kategorie asynchronicznie już w otlooku 
         {
             var stringContent = JsonConvert.SerializeObject(category); //konwertujemy naszą klasę categoryModel do formatu json ponieważ właśnie takie jest obsługiwany przez API
                                                                        //konwertujemy za pomoc newtonsoft.json
-            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/"+mail+"/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
+            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/" + displayName + "/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
                 new StringContent(stringContent, Encoding.UTF8, "application/json"));    // drugi to format danych w jakim będziemy przesyłać
             return response.IsSuccessStatusCode; 
 
         }
  
-        private static async Task CreateCategory(string displayName, string colour) //ostateczna metoda którą wywyołujemy mainie
+        public static async Task<bool> CreateCategory(string displayName, string colour, string mail) //ostateczna metoda którą wywyołujemy mainie
         {
-            var accessToken = GetAccessToken();
-            var httpClient = GetHttpClient(accessToken);
-            var user = await GetUserAsync(httpClient);
-            var category = CreateCategoryObject(displayName,colour);
-            var isSuccess = await CreateCategoryAsync(httpClient, category, user.Value.First().UserPrincipalName);
+            string colourMapped;
+            colour = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(colour.ToLower()); //zmieniamy stringa do formatu w którym pierwsza litera jest wielka a reszta mała tak żeby user mógł wpisać
+                                                                                                                  //wpisać kolor w każdej formie
+            ColourCollection colourCollection = new ColourCollection();
 
-            if (isSuccess)
+            if (colourCollection.ColourExcist(colour))
             {
-                Console.Write("Everything went correct. Check your categories!");
+                ValueUserModel valueUserModel = new ValueUserModel();
+                var accessToken = GetAccessToken();
+                var httpClient = GetHttpClient(accessToken);
+                var user = await GetUserAsync(httpClient, mail);
+                
+                valueUserModel = user.Value.First(); //pierwszego usera z listy. Wiemy że jest tylko jeden bo szukaliśmy po mailu a zakładam że nie ma dwóch różnych userów z tym samym mailem
+                                                     // a dlaczego to robię ponieważ zakładam że displaname może różnić się od maila 
+                                                     //dlatego na wszelki wypadek stworzyłem classe usermodel
+
+
+                if (user.Value.Count() != 0)       //sprawdzamy czy lista pusta jeśli nie to znaczy że znelźliśmy naszego usera
+                {
+                    colourMapped = colourCollection.MappedColour(colour); //mapuje kolor to odpowiedniego formatu czyli np red = preset1 
+                    var category = CreateCategoryObject(displayName, colourMapped); 
+
+                    var isSuccess = await CreateCategoryAsync(httpClient, category, valueUserModel.DisplayName );
+                    if (isSuccess)
+                    {
+                        Console.Write("Everything went correct. Check your categories!");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.Write("Error");
+                        return false;
+                    }
+                }
+                else
+                    return false;
             }
             else
-            {
-                Console.Write("Error");
-            }
+                return false;
         }
        
     }

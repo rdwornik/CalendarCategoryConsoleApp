@@ -8,25 +8,28 @@ namespace CalendarCategoryConsoleApp
 {
     class Program
     {
+        private const string askForUserMail = "Please write users mail which you want create mail";
+        private const string askForCategoryColour = "Great now please enter colour of category \n You can choose such a colours:\n";
+        private const string askForCategoryName = "Hello here you can create your categories. \n First please wirte how you want to name your category:";
+
         static void Main(string[] args)
         {
+            string displayName;
+            string colour;
+            string mail;
 
-            Console.WriteLine("Hello here you can create your categories. \n" +
-                "First please wirte how you want to name your category:");
+            Console.WriteLine(askForCategoryName);
 
-            string displayName = Console.ReadLine();
+            displayName = Console.ReadLine();
 
-            Console.WriteLine("Great now please enter colour of category \n" +
-                "You can choose such a colours:\n" + ColourCollection.DisplayColours());
+            Console.WriteLine(askForCategoryColour + ColourCollection.DisplayColours());
+            colour = Console.ReadLine();
 
-            string colour = Console.ReadLine();
-            colour = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(colour.ToLower());
-            Console.WriteLine(ColourCollection.GetColour(colour));
+            Console.WriteLine(askForUserMail);
 
-            //CategoryClient.CreateCategory(displayName, ColourCollection.MappedColour(colour)).Wait();
-            //Console.ReadKey();
+            mail = Console.ReadLine();
 
-            //CategoryClient.GetListofEmails().Wait();
+            CategoryClient.CreateCategory(displayName, colour, mail).Wait();
 
             Console.ReadKey();
         }
