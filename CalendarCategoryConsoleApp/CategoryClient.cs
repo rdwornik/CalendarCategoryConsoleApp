@@ -7,6 +7,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
+using System.Configuration;
 
 namespace CalendarCategoryConsoleApp
 {
@@ -22,7 +24,8 @@ namespace CalendarCategoryConsoleApp
         //moja domena w Office 365 
         public static string Domain
         {
-            get { return "testGraphApi1996.onmicrosoft.com"; }
+            get { string connectionString = ConfigurationManager.ConnectionStrings["MyDomain"].ConnectionString;  return connectionString; }
+           
         }
 
         /// Uprawnienia do uwierzytelniania; łącząc AADInstance
@@ -35,13 +38,15 @@ namespace CalendarCategoryConsoleApp
         // Id aplikacji
         public static string ClientId
         {
-            get { return "3fd45a93-47db-49da-94b9-56e48e2499b9"; }
+            get { string connectionString = ConfigurationManager.ConnectionStrings["ClientId"].ConnectionString; return connectionString; }
         }
 
         //uri do aplikacji
         public static Uri RedirectUri
         {
-            get { return new Uri("https://CalendarCategoryConsoleApp"); }
+            get {
+                string connectionString = ConfigurationManager.ConnectionStrings["RedirectUri"].ConnectionString;
+                return new Uri(connectionString); }
         }
 
         
@@ -99,17 +104,28 @@ namespace CalendarCategoryConsoleApp
             return user;
         }
 
-        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string displayName) //tworzymy kategorie asynchronicznie już w otlooku 
+        public static async Task<bool> CategoryExcist(HttpClient httpClient, string categoryName, string mail)
+        {
+
+            var categoryListResponse = await httpClient.GetStringAsync(GraphResource + GraphVersion + "/users/" + mail + "/outlook/masterCategories");
+            var categoryList = JsonConvert.DeserializeObject<CategoryListModel>(categoryListResponse);
+            bool contains = categoryList.Value.Any(p => p.displayName == categoryName);
+            if(contains)
+                Console.WriteLine("User: " + mail + " already have category named: " +categoryName);
+            return contains;
+        }
+
+        private static async Task<bool> CreateCategoryAsync(HttpClient httpClient, CategoryModel category,string mail) //tworzymy kategorie asynchronicznie już w otlooku 
         {
             var stringContent = JsonConvert.SerializeObject(category); //konwertujemy naszą klasę categoryModel do formatu json ponieważ właśnie takie jest obsługiwany przez API
                                                                        //konwertujemy za pomoc newtonsoft.json
-            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/" + displayName + "/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
+            var response = await httpClient.PostAsync(GraphResource + GraphVersion + "/users/" + mail + "/outlook/masterCategories", // pierwszy argmunet  uri do POSTa
                 new StringContent(stringContent, Encoding.UTF8, "application/json"));    // drugi to format danych w jakim będziemy przesyłać
             return response.IsSuccessStatusCode; 
 
         }
  
-        public static async Task<bool> CreateCategory(string displayName, string colour, string mail) //ostateczna metoda którą wywyołujemy mainie
+        public static async Task<bool> CreateCategory(string categoryName, string colour, string mail) //ostateczna metoda którą wywyołujemy mainie
         {
             string colourMapped;
             colour = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(colour.ToLower()); //zmieniamy stringa do formatu w którym pierwsza litera jest wielka a reszta mała tak żeby user mógł wpisać
@@ -122,28 +138,29 @@ namespace CalendarCategoryConsoleApp
                 var accessToken = GetAccessToken();
                 var httpClient = GetHttpClient(accessToken);
                 var user = await GetUserAsync(httpClient, mail);
-                
-                valueUserModel = user.Value.First(); //pierwszego usera z listy. Wiemy że jest tylko jeden bo szukaliśmy po mailu a zakładam że nie ma dwóch różnych userów z tym samym mailem
-                                                     // a dlaczego to robię ponieważ zakładam że displaname może różnić się od maila 
-                                                     //dlatego na wszelki wypadek stworzyłem classe usermodel
-
 
                 if (user.Value.Count() != 0)       //sprawdzamy czy lista pusta jeśli nie to znaczy że znelźliśmy naszego usera
                 {
-                    colourMapped = colourCollection.MappedColour(colour); //mapuje kolor to odpowiedniego formatu czyli np red = preset1 
-                    var category = CreateCategoryObject(displayName, colourMapped); 
-
-                    var isSuccess = await CreateCategoryAsync(httpClient, category, valueUserModel.DisplayName );
-                    if (isSuccess)
+                    bool containsCategory = await CategoryExcist(httpClient, categoryName, mail); //sprawdzamy czy kategoria już nie istnieje u użytkownika
+                    if (!containsCategory)
                     {
-                        Console.Write("Everything went correct. Check your categories!");
-                        return true;
+                        colourMapped = colourCollection.MappedColour(colour); //mapuje kolor to odpowiedniego formatu czyli np red = preset1 
+                        var category = CreateCategoryObject(categoryName, colourMapped);
+
+                        var isSuccess = await CreateCategoryAsync(httpClient, category, mail);
+                        if (isSuccess)
+                        {
+                            Console.Write("Everything went correct. Check your categories!");
+                            return true;
+                        }
+                        else
+                        {
+                            Console.Write("Error");
+                            return false;
+                        }
                     }
                     else
-                    {
-                        Console.Write("Error");
                         return false;
-                    }
                 }
                 else
                     return false;

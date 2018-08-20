@@ -14,22 +14,28 @@ namespace CalendarCategoryConsoleApp
 
         static void Main(string[] args)
         {
-            string displayName;
+            string categoryName;
             string colour;
             string mail;
 
             Console.WriteLine(askForCategoryName);
 
-            displayName = Console.ReadLine();
+            categoryName = Console.ReadLine();
 
             Console.WriteLine(askForCategoryColour + ColourCollection.DisplayColours());
             colour = Console.ReadLine();
+            //ColourCollection colourCollection = new ColourCollection();
+            //Console.WriteLine(colourCollection.MappedColour(colour));
 
             Console.WriteLine(askForUserMail);
 
             mail = Console.ReadLine();
 
-            CategoryClient.CreateCategory(displayName, colour, mail).Wait();
+            
+           
+
+            CategoryClient.CreateCategory(categoryName, colour, mail).Wait();
+
 
             Console.ReadKey();
         }
