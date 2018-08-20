@@ -23,16 +23,12 @@ namespace CalendarCategoryConsoleApp
             categoryName = Console.ReadLine();
 
             Console.WriteLine(askForCategoryColour + ColourCollection.DisplayColours());
-            colour = Console.ReadLine();
-            //ColourCollection colourCollection = new ColourCollection();
-            //Console.WriteLine(colourCollection.MappedColour(colour));
+
+            colour = Console.ReadLine();      
 
             Console.WriteLine(askForUserMail);
 
             mail = Console.ReadLine();
-
-            
-           
 
             CategoryClient.CreateCategory(categoryName, colour, mail).Wait();
 

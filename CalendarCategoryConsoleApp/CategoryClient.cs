@@ -104,7 +104,7 @@ namespace CalendarCategoryConsoleApp
             return user;
         }
 
-        public static async Task<bool> CategoryExcist(HttpClient httpClient, string categoryName, string mail)
+        public static async Task<bool> CategoryExcist(HttpClient httpClient, string categoryName, string mail) //sprawdzamy czy kategorie którą chcemy stworzyć użytkownik już nie posiada
         {
 
             var categoryListResponse = await httpClient.GetStringAsync(GraphResource + GraphVersion + "/users/" + mail + "/outlook/masterCategories");
